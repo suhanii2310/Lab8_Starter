@@ -9,7 +9,30 @@ self.addEventListener('install', function (event) {
     caches.open(CACHE_NAME).then(function (cache) {
       // B6. TODO - Add all of the URLs from RECIPE_URLs here so that they are
       //            added to the cache when the ServiceWorker is installed
-      return cache.addAll([]);
+      return cache.addAll([
+        '/',
+  '/index.html',
+  '/assets/scripts/main.js',
+  '/assets/styles/main.css',
+  '/assets/components/RecipeCard.js',
+  '/assets/images/icons/icon.png',
+  '/assets/images/icons/icon-large.png',
+  'https://suhanii2310.github.io/Lab8_Starter/recipes/1_50-thanksgiving-side-dishes.json',
+  'https://suhanii2310.github.io/Lab8_Starter/recipes/2_roasting-turkey-breast-with-stuffing.json',
+  'https://suhanii2310.github.io/Lab8_Starter/recipes/3_moms-cornbread-stuffing.json',
+  'https://suhanii2310.github.io/Lab8_Starter/recipes/4_50-indulgent-thanksgiving-side-dishes-for-any-holiday-gathering.json',
+  'https://suhanii2310.github.io/Lab8_Starter/recipes/5_healthy-thanksgiving-recipe-crockpot-turkey-breast.json',
+  'https://suhanii2310.github.io/Lab8_Starter/recipes/6_one-pot-thanksgiving-dinner.json'
+      ]);
+    })
+  );
+});
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Service Worker: Caching files...');
+      return cache.addAll(FILES_TO_CACHE);
     })
   );
 });
@@ -37,4 +60,20 @@ self.addEventListener('fetch', function (event) {
   // B8. TODO - If the request is in the cache, return with the cached version.
   //            Otherwise fetch the resource, add it to the cache, and return
   //            network response.
+
+  event.respondWith(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request).then((networkResponse) => {
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        }).catch((err) => {
+          console.warn('Fetch failed; likely offline:', err);
+        });
+      });
+    })
+  );
 });
